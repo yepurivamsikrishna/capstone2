@@ -1,0 +1,42 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: bookstore-book-event-listener
+spec:
+  triggers:  
+    - bindings:
+        - kind: TriggerBinding
+          ref: bookstore-pipelinerun-trigger-binding
+      template:
+        ref: bookstore-book-pipelinerun-trigger-template
+  
+  
+#   - bindings:
+#       - kind: TriggerBinding
+#         ref: bookstore-pipelinerun-trigger-binding
+#     template:
+#       ref: bookstore-book-pipelinerun-trigger-template-dev
+#     interceptors:
+#       - cel:
+#           filter: >-
+#             body.ref.startsWith('refs/heads/dev') 
+#
+#   - bindings:
+#       - kind: TriggerBinding
+#         ref: bookstore-pipelinerun-trigger-binding
+#     template:
+#       ref: bookstore-book-pipelinerun-trigger-template-qa
+#     interceptors:
+#       - cel:
+#           filter: >-
+#             body.ref.startsWith('refs/heads/qa') 
+#
+#   - bindings:
+#       - kind: TriggerBinding
+#         ref: bookstore-pipelinerun-trigger-binding
+#     template:
+#       ref: bookstore-book-pipelinerun-trigger-template-prod
+#     interceptors:
+#       - cel:
+#           filter: >-
+#             body.ref.startsWith('refs/heads/master')        

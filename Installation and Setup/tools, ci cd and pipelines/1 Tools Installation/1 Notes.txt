@@ -1,0 +1,79 @@
+
+Prerequisites:
+Kubernetes cluster with nfs server and storage class as default (Refer capstone 1 docs)
+Now, for testing create pvc and it should automatically create pvs.
+
+
+---------------------- Install Tekton,Dashboard (namespace: tekton) -------------------
+
+>> kubectl apply --filename https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+>> kubectl apply --filename https://storage.googleapis.com/tekton-releases/dashboard/latest/release.yaml
+>> kubectl apply --filename https://storage.googleapis.com/tekton-releases/triggers/latest/release.yaml
+>> kubectl apply --filename https://storage.googleapis.com/tekton-releases/triggers/latest/interceptors.yaml
+
+Verfiy
+>> kubectl get all -n tekton-pipelines
+
+Change tekton-dashboard svc to nodeport
+>> kubectl edit svc tekton-dashboard -n tekton-pipelines
+
+
+Access dashboard from nodeport of anyof the ip addresses
+http://34.162.101.19:31252/#/about
+
+
+
+---------------------- Install ArgoCD (namespace:argocd) -------------------
+https://argo-cd.readthedocs.io/en/stable/getting_started/
+>> kubectl create namespace argocd
+>> kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+     If you don't need dashboard install only core
+        kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/core-install.yaml
+
+Change service to NodePort (service/argocd-server)
+>> kubectl edit svc argocd-server -n argocd
+
+>> kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+
+https://34.162.96.85:32601/(Use any node ip)
+admin/UZY1kfpbMUwo0iL6
+
+
+
+
+
+
+------------------------ Install Code Repo Gogs (namespace:gogs) ----------------------------
+https://github.com/drabo/gogs
+For installation check gogs.yaml file. Using sqllite db.
+
+>> kubectl apply -f gogs.yaml
+
+Access the gogs dashboard and set the username and password:          34.162.101.19:30080
+
+Configure domain hostname with <private-ip>
+Configure Application URL with http://<private-ip>:30080
+SSH port : 22
+HTTP port 3000
+Admin email/username/password - (gogsadmin@test.com/gogs/gogs)
+
+
+
+
+
+
+
+--------------- Install Docker Image registry (Skip if you use dockerhub)--------------
+
+>> docker run -d -p 5000:5000 -e REGISTRY_STORAGE_DELETE_ENABLED=true --name my-registry registry:2
+>> docker run -d --name registry-ui -p 80:80 -e REGISTRY_HOST=10.202.0.9:5000  --restart on-failure jc21/registry-ui
+
+
+>> docker tag alpine:latest <private-ip>:5000/alpine:v1
+>> docker push <private-ip>:5000/alpine:v1
+     Now Visit registry ui to view the images.
+
+UI -> http://34.162.240.194/
+Registry -> http://34.162.240.194:5000
+
+To delete Images, Go to /var/lib/registry and delete images

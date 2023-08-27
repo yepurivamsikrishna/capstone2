@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookstore-ui-configmap
+data:
+  app.json: |
+    {
+      "orders_host": "34.162.101.19:30073",
+      "user_host": "34.162.101.19:30071",
+      "books_host": "34.162.101.19:30072"
+    }    

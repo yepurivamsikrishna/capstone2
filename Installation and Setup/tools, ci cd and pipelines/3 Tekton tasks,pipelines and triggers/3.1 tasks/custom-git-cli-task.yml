@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: custom-git-cli
+spec:
+  params:
+    - default: >-
+        docker.io/alpine/git:v2.26.2@sha256:23618034b0be9205d9cc0846eb711b12ba4c9b468efdd8a59aac1d7b1a23363f
+      description: The base image for the task.
+      name: BASE_IMAGE
+      type: string
+    - default: 
+      description: Docker Image for deployment
+      name: DOCKER_IMAGE
+      type: string      
+    - default: ""
+      description: Http Proxy.
+      name: HTTP_PROXY
+      type: string 
+    - default: ""
+      description: Https Proxy.
+      name: HTTPS_PROXY
+      type: string 
+    - default: ""
+      description: No Proxy.
+      name: NO_PROXY
+      type: string  
+    - default: 
+      description: Script to run
+      name: SCRIPT
+      type: string                
+  steps:
+    - image: $(params.BASE_IMAGE)
+      env:
+        - name: HTTP_PROXY
+          value: $(params.HTTP_PROXY)
+        - name: HTTPS_PROXY
+          value: $(params.HTTPS_PROXY)
+        - name: NO_PROXY
+          value: $(params.NO_PROXY)    
+      name: git-cli
+      script: |
+        new_ver=`echo $(params.DOCKER_IMAGE) | awk -F":" '{print $NF}'`      
+        $(params.SCRIPT) 
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - description: A workspace that contains the fetched git repository.
+      name: source

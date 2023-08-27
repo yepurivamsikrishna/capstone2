@@ -1,0 +1,109 @@
+
+----------------------------- 3.1 Tasks ------------------------
+
+>> kubectl create ns bookstore-pipelines
+
+>> tkn task ls -n bookstore-pipelines
+
+Go to tasks folder
+>> kubectl apply -f git-clone-task.yml -n bookstore-pipelines
+>> kubectl apply -f maven-task.yml  -n bookstore-pipelines
+>> kubectl apply -f buildah-task.yml -n bookstore-pipelines
+>> kubectl apply -f custom-git-cli-task.yml -n bookstore-pipelines 
+>> kubectl apply -f argocd-sync-and-wait-task.yml -n bookstore-pipelines
+
+
+
+ 
+
+
+---- 3.2 Pipelines - Go to pipelines folder. Edit *-pipeline-*.yml files as per reqirement.----
+
+
+Change *proxy details
+       *dockerhub repo/ private ip details and credentials
+       *gogs git repo private ip details
+       *argocd server details
+
+
+	
+>> kubectl apply -f bookstore-user-pipeline.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-book-pipeline.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-orders-pipeline.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-ui-pipeline.yml -n bookstore-pipelines
+
+
+	
+----Go to pipeline-pvcs folder----	
+   
+>> kubectl apply -f bookstore-user-pvc.yml -n bookstore-pipelines   
+>> kubectl apply -f bookstore-book-pvc.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-orders-pvc.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-ui-pvc.yml -n bookstore-pipelines 
+
+
+  
+
+----Go to pipelineruns folder---- 
+Note: Run pipelines just for testing. Pipelines runs will be created by triggers
+>> kubectl create -f bookstore-user-pipelinerun.yml -n bookstore-pipelines
+
+
+
+
+
+
+----------Go to triggers/trigger-binding folder. Note: Here we are using common trigger binding for all templates. If required you can create new binding based on requirement.---------
+
+
+>> kubectl apply -f bookstore-pipelinerun-trigger-binding.yml -n bookstore-pipelines
+
+
+
+
+---------------Go to triggers/trigger-templates folder.---------------
+
+>> kubectl apply -f bookstore-user-pipelinerun-trigger-template.yml -n bookstore-pipelines   
+
+>> kubectl apply -f bookstore-book-pipelinerun-trigger-template.yml -n bookstore-pipelines   
+
+>> kubectl apply -f bookstore-orders-pipelinerun-trigger-template.yml -n bookstore-pipelines   
+
+>> kubectl apply -f bookstore-ui-pipelinerun-trigger-template.yml -n bookstore-pipelines   
+
+
+
+------------Go to triggers/event-listeners folder.Note change trigger bindings if you created anything new.------------
+
+>> kubectl apply -f bookstore-user-event-listener.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-book-event-listener.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-orders-event-listener.yml -n bookstore-pipelines
+>> kubectl apply -f bookstore-ui-event-listener.yml -n bookstore-pipelines
+   
+   Event Listener will create pod and exposed as a service. Use this url in Git webhooks. (Repo -> Settings -> Webhooks -> Paste payload url -> I need everything -> Add Webhook -> Test Delivery)
+     Eg: http://el-bookstore-user-event-listener.bookstore-pipelines.svc.cluster.local:8080
+	     http://el-bookstore-book-event-listener.bookstore-pipelines.svc.cluster.local:8080
+		 http://el-bookstore-orders-event-listener.bookstore-pipelines.svc.cluster.local:8080
+		 http://el-bookstore-ui-event-listener.bookstore-pipelines.svc.cluster.local:8080
+ 
+
+Note: The eventlistener pods will not be up, as they don't have enough permission. Go through next step to give permissions. If pods still doesn't comeup delete the pod, so new pods will spin up.
+
+
+------------Go to triggers/rbac folder. Inorder to invoke pipelinerun from triggers, we need to add more role to service account.-----------
+>> kubectl apply -f tekton-pipeline-cluster-role.yml
+ Change namespace to <bookstore-pipelines> in rolebinding yaml file.
+>> kubectl apply -f tekton-pipeline-cluster-role-binding.yml -n bookstore-pipelines 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+

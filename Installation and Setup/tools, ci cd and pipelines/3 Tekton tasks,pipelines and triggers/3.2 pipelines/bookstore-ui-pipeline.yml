@@ -1,0 +1,121 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: bookstore-ui-pipeline
+spec:
+  params:
+  - name: CODE_REPO_URL
+    type: string
+  - name: CODE_REPO_COMMIT_ID
+    type: string
+  tasks:
+  - name: fetch-code
+    params:
+    - name: url
+      value: $(params.CODE_REPO_URL)
+    - name: revision
+      value: master
+    - name: submodules
+      value: "true"
+    - name: depth
+      value: "1"
+    - name: sslVerify
+      value: "false"
+    - name: deleteExisting
+      value: "true"
+    - name: verbose
+      value: "true"
+    - name: userHome
+      value: /tekton/home
+    taskRef:
+      kind: Task
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: bookstore-ui-workspace
+  - name: docker-build-and-push
+    runAfter:
+    - fetch-code
+    params:
+    - name: IMAGE
+      value: docker.io/vkyepuri/bookstore-ui:$(params.CODE_REPO_COMMIT_ID)
+    - name: BUILDER_IMAGE
+      value: 'quay.io/buildah/stable:v1.17.0'
+    - name: STORAGE_DRIVER
+      value: vfs
+    - name: DOCKERFILE
+      value: ./Dockerfile
+    - name: CONTEXT
+      value: .
+    - name: TLSVERIFY
+      value: 'false'
+    - name: FORMAT
+      value: oci
+    - name: PUSH_EXTRA_ARGS
+      value: '--creds=vkyepuri:Welcome1@'
+#   - name: HTTP_PROXY
+#     value: 'http://172.31.37.11:3128'
+#   - name: HTTPS_PROXY
+#     value: 'http://172.31.37.11:3128'
+#   - name: NO_PROXY
+#     value: '192.168.10.33'
+    taskRef:
+      kind: Task
+      name: buildah
+    workspaces:
+    - name: source
+      workspace: bookstore-ui-workspace
+    - name: sslcertdir
+      workspace: bookstore-ui-workspace
+  - name: update-manifest-in-git
+    runAfter:
+    - docker-build-and-push
+    params:
+      - name: DOCKER_IMAGE
+        value: >-
+          docker.io/vkyepuri/bookstore-ui:$(params.CODE_REPO_COMMIT_ID)
+#     - name: HTTP_PROXY
+#       value: 'http://172.31.37.11:3128'
+#     - name: HTTPS_PROXY
+#       value: 'http://172.31.37.11:3128'
+#     - name: NO_PROXY
+#       value: '192.168.10.20'
+      - name: SCRIPT
+        value: >-
+          git clone http://10.202.0.5:30080/gogs/bookstore-argocd.git;
+          old_ver=`sed -n 33p bookstore-argocd/bookstore-ui.yaml | awk -F":" '{print $NF}'`;
+          sed -i "33s/$old_ver/$new_ver/"  bookstore-argocd/bookstore-ui.yaml;
+          cd bookstore-argocd && git add * &&
+          git config  user.name "Tekton Bot" &&
+          git config  user.email bot@tekton.com &&
+          git commit -m "Updated image with new version : $new_ver" || true &&
+          git push http://gogs:gogs@10.202.0.5:30080/gogs/bookstore-argocd.git
+    taskRef:
+      kind: Task
+      name: custom-git-cli
+    workspaces:
+      - name: source
+        workspace: bookstore-ui-workspace
+  - name: argocd-sync
+    runAfter:
+    - update-manifest-in-git
+    params:
+      - name: application-name
+        value: bookstore-app
+      - name: revision
+        value: HEAD
+      - name: flags
+        value: '--'
+      - name: argocd-version
+        value: latest
+      - name: argocd-server
+        value: 'argocd-server.argocd.svc.cluster.local:80'
+      - name: username
+        value: admin
+      - name: password
+        value: zlLQVbX6EeGW4NSu
+    taskRef:
+      kind: Task
+      name: argocd-sync-and-wait
+  workspaces:
+  - name: bookstore-ui-workspace

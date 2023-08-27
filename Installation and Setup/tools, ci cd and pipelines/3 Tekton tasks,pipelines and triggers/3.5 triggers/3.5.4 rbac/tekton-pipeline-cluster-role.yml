@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tekton-pipeline-cluster-role
+rules:
+- apiGroups:
+  - ""                           # Core API 
+  - triggers.tekton.dev          # For creating Trigger. Use (>>kubectl api-resources) to view all apiGroups
+  - tekton.dev                   # For creating pipelinerun
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete

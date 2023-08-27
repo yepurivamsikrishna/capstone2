@@ -1,0 +1,62 @@
+
+-------- Step 1:  Create following bookstore application repos in gogs repositroy --------
+
+
+bookstore-book
+bookstore-user
+bookstore-orders
+bookstore-ui
+
+Clone the each repository and place the code and push back to gogs repository
+
+
+
+
+
+
+
+-------- Step 2:  Create mysqldb for the application in bookstore namespace--------
+
+Create a namespace "bookstore"
+>> kubectl create namespace bookstore
+
+Deployment Orders
+1) MySQL  (mandatory)
+2) User Service (uses mysql) - Java (optional - deployed by CI/CD ArgoCD)
+3) Book Service (uses mysql,userservice) - Java (optional - deployed by CI/CD Argo CD)
+4) Orders Service (uses mysql,userservice,orders service) - Python (optional - deployed by CI/CD Argo CD)
+5) UI Service (uses all backend services) (optional - deployed by CI/CD Argo CD)
+
+
+Create Mysql Deployment,Svc,Pvc and load data.sql into the database 
+ >> kubectl apply -f mysql.yaml
+ >> kubectl -n bookstore exec -i <my_sql_pod_name> -- mysql -h mysql.bookstore.svc.cluster.local -pRoot_12345 < data.sql
+Connect to database using client and kubectl -n bookstoreverify data is loaded
+ >> kubectl run -it --rm --image=mysql:latest --restart=Never mysql-client -- mysql -h mysql.bookstore.svc.cluster.local -pRoot_12345
+
+
+
+
+
+-------- Step 3:  Create the following argocd manifests repo and sync to argocd --------
+
+
+>> (Change ui configmap - "bookstore-ui-configmap.yaml" with master public ip address if deployed on public cloud/ private ip address if deployed on LAN)
+
+>> Create a repo in gogs  "bookstore-argocd"   
+
+>> Clone the  repository and place the k8s yaml files and push back to gogs repository
+
+>> Create an application in argocd with name "bookstore-app" and link "bookstore-argocd" repository to argocd and kubernetes "bookstore" namespace.
+    Revision: HEAD or master
+    PATH: .
+
+     *** Don't enable auto-sync. We will do manual sync in ci/cd.
+
+Note: The above create all the four microservices of the bookstore app and can access the application
+
+
+
+
+
+

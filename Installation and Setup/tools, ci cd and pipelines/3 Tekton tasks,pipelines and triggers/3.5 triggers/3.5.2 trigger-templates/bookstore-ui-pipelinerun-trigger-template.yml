@@ -1,0 +1,31 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: bookstore-ui-pipelinerun-trigger-template
+spec:
+  params:
+  - name: git-repo-url
+    description: The git repository url
+# - name: git-branch
+#   description: The git revision    
+  - name: git-commit-id
+    description: The name of the deployment to be created / patched
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: bookstore-ui-pipelinerun-
+    spec:
+      pipelineRef:
+        name: bookstore-ui-pipeline
+      params:
+      - name: CODE_REPO_URL
+        value: $(tt.params.git-repo-url)
+#     - name: CODE_REPO_BRANCH
+#       value: $(tt.params.git-branch)
+      - name: CODE_REPO_COMMIT_ID
+        value: $(tt.params.git-commit-id) 
+      workspaces:
+        - name: bookstore-ui-workspace
+          persistentVolumeClaim:
+            claimName: bookstore-ui-pvc

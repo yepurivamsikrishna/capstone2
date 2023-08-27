@@ -1,0 +1,22 @@
+#
+#
+# This is just for testing. Actually PipelineRun will be instantiated by Triggers
+#
+#
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: bookstore-user-pipelinerun-
+spec:
+  params:
+  - name: CODE_REPO_URL
+    value: http://10.202.0.5:30080/gogs/bookstore-user.git
+  - name: CODE_REPO_COMMIT_ID
+    value: "1"
+  pipelineRef:
+    name: bookstore-user-pipeline
+  workspaces:
+  - name: bookstore-user-workspace
+    persistentVolumeClaim:
+      claimName: bookstore-user-pvc
+      
