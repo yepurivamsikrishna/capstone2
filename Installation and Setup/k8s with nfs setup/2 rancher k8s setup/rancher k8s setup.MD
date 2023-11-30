@@ -181,4 +181,4 @@ Make this "nfs-storageclass" storage class as default storage class. If your PVC
 ```
 
 
-***If the nfs-client-provisioner pod is not creating, may be, you didn't install nfs-commons package on all k8s nodes.***
+***If the nfs-client-provisioner pod is not creating, may be, you didn't install nfs-common / nfs-utils package on all k8s nodes.***
