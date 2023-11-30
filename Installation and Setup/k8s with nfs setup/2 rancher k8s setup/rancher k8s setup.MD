@@ -101,6 +101,12 @@ slave2 node roles : worker
 
 - Run the command in slave nodes and wait to join the cluster and rancher server.
 
+- If you get openssl issue, install openssl (yum install openssl -y)
+
+- If the registration commands are created with pubic ips, use public ip only to join the cluster.Don't replace with private ip. Use --insecue flag.
+
+- If you are installing on private network without public ips, you can use private ip in the registration commands.
+
 - Wait for some time until all nodes are provisioned and register in rancher server.
 
 <br/><br/>
