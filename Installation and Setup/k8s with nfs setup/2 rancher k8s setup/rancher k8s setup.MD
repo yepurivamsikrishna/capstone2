@@ -179,3 +179,6 @@ Make this "nfs-storageclass" storage class as default storage class. If your PVC
 ```shell
 >> kubectl patch storageclass nfs-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 ```
+
+
+If the nfs-client-provisioner pod is not creating, may be, you didn't install nfs-commons package on all k8s nodes.
